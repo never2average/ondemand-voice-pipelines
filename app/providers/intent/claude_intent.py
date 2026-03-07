@@ -71,6 +71,8 @@ class ClaudeIntentExtractor(IntentExtractor):
             return self._fallback_extract(text, intent_schema_artifact, classifier_component)
 
     def _should_use_remote_model(self) -> bool:
+        if get_settings().demo_mode:
+            return False
         if self._client is None:
             return False
         lowered_key = self._api_key.lower()

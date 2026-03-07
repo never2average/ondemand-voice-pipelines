@@ -99,7 +99,7 @@ The generated OpenAPI document is stored in `openapi.json`.
 
 The repository includes [examples/voice_samples/check-my-balance.wav](/Users/priyeshsrivastava/ondemand-voice-pipelines/examples/voice_samples/check-my-balance.wav) and a deterministic `sample` ASR provider. That provider fingerprints the committed WAV and returns the transcript `check my balance`, which makes the full API flow reproducible without external ASR services.
 
-Run the API locally and then execute:
+Run the API locally with `DEMO_MODE=true` and then execute:
 
 ```bash
 .venv/bin/python scripts/run_voice_sample_demo.py
