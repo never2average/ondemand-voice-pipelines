@@ -27,7 +27,7 @@ class BaselineGraphPlannerAgent(BaseArtifactAgent[PipelineGraphArtifact]):
             component_id="asr_primary",
             component_name="Primary ASR",
             provider=build_context.asr_provider,
-            model="whisper-1" if build_context.asr_provider == "whisper" else "nova-2",
+            model=self._resolve_asr_model(build_context.asr_provider),
             language="en",
             keyword_hints=[intent.intent_name.replace("_", " ") for intent in intent_schema_artifact.intents],
             n_best=1,
@@ -127,3 +127,10 @@ class BaselineGraphPlannerAgent(BaseArtifactAgent[PipelineGraphArtifact]):
             ]
         )
         return "\n".join(sections)
+
+    def _resolve_asr_model(self, asr_provider: str) -> str:
+        if asr_provider == "whisper":
+            return "whisper-1"
+        if asr_provider == "sample":
+            return "fixture-transcript-v1"
+        return "nova-2"

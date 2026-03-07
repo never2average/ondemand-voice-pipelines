@@ -1,9 +1,11 @@
 from app.providers.asr.base import ASRProvider
 from app.providers.asr.deepgram import DeepgramProvider
+from app.providers.asr.sample import SampleProvider
 from app.providers.asr.whisper import WhisperProvider
 
 _PROVIDERS: dict[str, type[ASRProvider]] = {
     "deepgram": DeepgramProvider,
+    "sample": SampleProvider,
     "whisper": WhisperProvider,
 }
 

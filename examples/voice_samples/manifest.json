@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "samples": [
+    {
+      "sample_name": "check-my-balance.wav",
+      "relative_path": "examples/voice_samples/check-my-balance.wav",
+      "sha256": "d467aecd588214e122d4891aeb81b63ab6ebe6f57ac8b926af0896b4d8040a85",
+      "transcript": "check my balance",
+      "confidence": 0.99,
+      "language": "en"
+    }
+  ]
+}

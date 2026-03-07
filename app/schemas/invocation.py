@@ -15,7 +15,10 @@ class IntentCandidate(BaseModel):
 
 class InvokeRequest(BaseModel):
     input_text: str | None = None
-    input_audio_base64: str | None = None
+    input_audio_base64: str | None = Field(
+        default=None,
+        description="Base64-encoded audio bytes. The local demo path accepts the committed WAV sample with asr_provider=sample.",
+    )
     input_type: str = Field(default="text", pattern="^(text|audio)$")
 
     @model_validator(mode="after")

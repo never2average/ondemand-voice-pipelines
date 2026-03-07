@@ -36,7 +36,10 @@ class PipelineCreateRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: str = ""
     intent_prompt: str = Field(..., min_length=1)
-    asr_provider: str = "whisper"
+    asr_provider: str = Field(
+        default="whisper",
+        description="ASR provider used for audio invocation. Supported local/demo values: whisper, deepgram, sample.",
+    )
     optimization_objective: OptimizationObjective | None = None
 
 
