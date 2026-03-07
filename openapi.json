@@ -918,7 +918,7 @@
               }
             ],
             "title": "Input Audio Base64",
-            "description": "Base64-encoded audio bytes. The local demo path accepts the committed WAV sample with asr_provider=sample."
+            "description": "Base64-encoded audio bytes for audio invocation requests."
           },
           "input_type": {
             "type": "string",
@@ -1254,7 +1254,7 @@
           "asr_provider": {
             "type": "string",
             "title": "Asr Provider",
-            "description": "ASR provider used for audio invocation. Supported local/demo values: whisper, deepgram, sample.",
+            "description": "ASR provider used for audio invocation.",
             "default": "whisper"
           },
           "optimization_objective": {

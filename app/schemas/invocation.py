@@ -17,7 +17,7 @@ class InvokeRequest(BaseModel):
     input_text: str | None = None
     input_audio_base64: str | None = Field(
         default=None,
-        description="Base64-encoded audio bytes. The local demo path accepts the committed WAV sample with asr_provider=sample.",
+        description="Base64-encoded audio bytes for audio invocation requests.",
     )
     input_type: str = Field(default="text", pattern="^(text|audio)$")
 

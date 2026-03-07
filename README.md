@@ -96,11 +96,11 @@ curl -X POST /api/v1/pipelines/{pipeline_id}/invoke \
 
 The generated OpenAPI document is stored in `openapi.json`.
 
-## Voice sample demo
+## Local voice sample
 
-The repository includes [examples/voice_samples/check-my-balance.wav](/Users/priyeshsrivastava/ondemand-voice-pipelines/examples/voice_samples/check-my-balance.wav) and a deterministic `sample` ASR provider. That provider fingerprints the committed WAV and returns the transcript `check my balance`, which makes the full API flow reproducible without external ASR services.
+The repository includes [examples/voice_samples/check-my-balance.wav](/Users/priyeshsrivastava/ondemand-voice-pipelines/examples/voice_samples/check-my-balance.wav) and a `sample` ASR provider used by tests and local development.
 
-Run the API locally with `DEMO_MODE=true` and then execute:
+After starting a normally configured API instance, you can execute:
 
 ```bash
 .venv/bin/python scripts/run_voice_sample_demo.py
@@ -122,7 +122,6 @@ python3 -m venv .venv
 . .venv/bin/activate
 pip install -e ".[dev]"
 cp .env.example .env
-# Set DEMO_MODE=true in .env for the self-contained sample-audio flow.
 uvicorn app.main:app --reload
 ```
 
