@@ -29,6 +29,7 @@ from app.schemas.invocation import IntentCandidate, InvokeRequest, InvokeRespons
 from app.schemas.pipeline import (
     OptimizationObjective,
     PipelineArtifactRecord,
+    PipelineBuildPhase,
     PipelineCompatibilitySnapshot,
     PipelineCreateRequest,
     PipelineDetailResponse,
@@ -357,7 +358,7 @@ class PipelineService:
             artifact_id=artifact_row["id"],
             artifact_type=artifact_type,
             version=int(artifact_row["version"]),
-            producer_agent=artifact_row.get("producer_agent", ""),
+            build_phase=self._build_phase_for_artifact(artifact_row, artifact_type),
             summary=artifact_row.get("summary", ""),
             created_at=artifact_row["created_at"],
             payload=self._parse_artifact_payload(artifact_type, artifact_row["payload"]),
@@ -372,6 +373,33 @@ class PipelineService:
             ArtifactType.adversarial_findings: AdversarialFindingsArtifact,
         }
         return model_by_type[artifact_type].model_validate(payload)
+
+    def _build_phase_for_artifact(
+        self,
+        artifact_row: dict,
+        artifact_type: ArtifactType,
+    ) -> PipelineBuildPhase:
+        producer_agent = artifact_row.get("producer_agent", "")
+        phase_by_producer = {
+            "intent_schema_agent": PipelineBuildPhase.intent_schema_design,
+            "eval_dataset_curator_agent": PipelineBuildPhase.evaluation_dataset,
+            "dataset_revision_step": PipelineBuildPhase.evaluation_dataset,
+            "baseline_graph_planner_agent": PipelineBuildPhase.pipeline_graph,
+            "graph_revision_agent": PipelineBuildPhase.pipeline_graph,
+            "pipeline_evaluator_agent": PipelineBuildPhase.evaluation,
+            "adversarial_dataset_agent": PipelineBuildPhase.adversarial_analysis,
+        }
+        if producer_agent in phase_by_producer:
+            return phase_by_producer[producer_agent]
+
+        default_phase_by_type = {
+            ArtifactType.intent_schema: PipelineBuildPhase.intent_schema_design,
+            ArtifactType.eval_dataset: PipelineBuildPhase.evaluation_dataset,
+            ArtifactType.pipeline_graph: PipelineBuildPhase.pipeline_graph,
+            ArtifactType.evaluation_report: PipelineBuildPhase.evaluation,
+            ArtifactType.adversarial_findings: PipelineBuildPhase.adversarial_analysis,
+        }
+        return default_phase_by_type.get(artifact_type, PipelineBuildPhase.build_output)
 
     async def _require_artifact_row(
         self,

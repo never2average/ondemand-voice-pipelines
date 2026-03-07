@@ -1082,9 +1082,8 @@
             "type": "integer",
             "title": "Version"
           },
-          "producer_agent": {
-            "type": "string",
-            "title": "Producer Agent"
+          "build_phase": {
+            "$ref": "#/components/schemas/PipelineBuildPhase"
           },
           "summary": {
             "type": "string",
@@ -1121,12 +1120,24 @@
           "artifact_id",
           "artifact_type",
           "version",
-          "producer_agent",
+          "build_phase",
           "summary",
           "created_at",
           "payload"
         ],
         "title": "PipelineArtifactRecord"
+      },
+      "PipelineBuildPhase": {
+        "type": "string",
+        "enum": [
+          "intent_schema_design",
+          "evaluation_dataset",
+          "pipeline_graph",
+          "evaluation",
+          "adversarial_analysis",
+          "build_output"
+        ],
+        "title": "PipelineBuildPhase"
       },
       "PipelineBuildStep": {
         "properties": {

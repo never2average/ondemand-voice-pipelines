@@ -72,7 +72,7 @@ def main() -> int:
         "artifact_history": [
             {
                 "artifact_type": artifact["artifact_type"],
-                "producer_agent": artifact["producer_agent"],
+                "build_phase": artifact["build_phase"],
                 "version": artifact["version"],
                 "summary": artifact["summary"],
             }

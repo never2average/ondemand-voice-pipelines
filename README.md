@@ -69,7 +69,7 @@ curl /api/v1/pipelines/{pipeline_id}
 # Full detail: intent_schema_artifact, published_graph_artifact,
 # latest_evaluation_report (IER, confusion matrix, per-intent accuracy),
 # latest_adversarial_findings (failure clusters, component fix recommendations),
-# artifact_history[] (every persisted agent output with producer_agent, version, summary, and typed payload)
+# artifact_history[] (every persisted build artifact with build_phase, version, summary, and typed payload)
 ```
 
 ### 4. Invoke

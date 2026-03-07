@@ -25,6 +25,15 @@ class PipelineStatus(str, Enum):
     failed = "failed"
 
 
+class PipelineBuildPhase(str, Enum):
+    intent_schema_design = "intent_schema_design"
+    evaluation_dataset = "evaluation_dataset"
+    pipeline_graph = "pipeline_graph"
+    evaluation = "evaluation"
+    adversarial_analysis = "adversarial_analysis"
+    build_output = "build_output"
+
+
 class OptimizationObjective(BaseModel):
     primary_metric: Literal["intent_error_rate"] = "intent_error_rate"
     target_intent_error_rate: float = Field(default=0.05, ge=0.0, le=1.0)
@@ -87,7 +96,7 @@ class PipelineArtifactRecord(BaseModel):
     artifact_id: str
     artifact_type: ArtifactType
     version: int
-    producer_agent: str
+    build_phase: PipelineBuildPhase
     summary: str
     created_at: datetime
     payload: (

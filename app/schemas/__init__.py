@@ -23,6 +23,7 @@ from app.schemas.invocation import IntentCandidate, InvokeRequest, InvokeRespons
 from app.schemas.pipeline import (
     OptimizationObjective,
     PipelineArtifactRecord,
+    PipelineBuildPhase,
     PipelineCompatibilitySnapshot,
     PipelineCreateRequest,
     PipelineDetailResponse,
@@ -53,6 +54,7 @@ __all__ = [
     "InvokeResponse",
     "OptimizationObjective",
     "PipelineArtifactRecord",
+    "PipelineBuildPhase",
     "PipelineBuildStep",
     "PipelineCompatibilitySnapshot",
     "PipelineCreateRequest",
