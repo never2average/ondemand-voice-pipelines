@@ -1069,6 +1069,65 @@
         "type": "object",
         "title": "OptimizationObjective"
       },
+      "PipelineArtifactRecord": {
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "title": "Artifact Id"
+          },
+          "artifact_type": {
+            "$ref": "#/components/schemas/ArtifactType"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "producer_agent": {
+            "type": "string",
+            "title": "Producer Agent"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "payload": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IntentSchemaArtifact"
+              },
+              {
+                "$ref": "#/components/schemas/EvalDatasetArtifact"
+              },
+              {
+                "$ref": "#/components/schemas/PipelineGraphArtifact"
+              },
+              {
+                "$ref": "#/components/schemas/EvaluationReportArtifact"
+              },
+              {
+                "$ref": "#/components/schemas/AdversarialFindingsArtifact"
+              }
+            ],
+            "title": "Payload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "artifact_id",
+          "artifact_type",
+          "version",
+          "producer_agent",
+          "summary",
+          "created_at",
+          "payload"
+        ],
+        "title": "PipelineArtifactRecord"
+      },
       "PipelineBuildStep": {
         "properties": {
           "step_name": {
@@ -1259,6 +1318,13 @@
                 "type": "null"
               }
             ]
+          },
+          "artifact_history": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineArtifactRecord"
+            },
+            "type": "array",
+            "title": "Artifact History"
           },
           "build_steps": {
             "items": {

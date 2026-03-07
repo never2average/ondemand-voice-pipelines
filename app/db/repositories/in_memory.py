@@ -54,6 +54,14 @@ class InMemoryArtifactRepository:
         row = self.rows.get(artifact_id)
         return dict(row) if row else None
 
+    async def list_by_pipeline(self, pipeline_id: str) -> list[dict]:
+        matching = [
+            dict(row)
+            for row in self.rows.values()
+            if row["pipeline_id"] == pipeline_id
+        ]
+        return sorted(matching, key=lambda row: row["created_at"])
+
 
 class InMemoryBuildStepRepository:
     def __init__(self):

@@ -28,6 +28,7 @@ from app.schemas.artifacts import (
 from app.schemas.invocation import IntentCandidate, InvokeRequest, InvokeResponse
 from app.schemas.pipeline import (
     OptimizationObjective,
+    PipelineArtifactRecord,
     PipelineCompatibilitySnapshot,
     PipelineCreateRequest,
     PipelineDetailResponse,
@@ -222,6 +223,7 @@ class PipelineService:
         row: dict,
         build_steps: list[dict],
     ) -> PipelineDetailResponse:
+        artifact_rows = await self._pipeline_artifact_repo.list_by_pipeline(row["id"])
         intent_schema_artifact = await self._load_artifact_model(
             row.get("intent_schema_artifact_id"),
             IntentSchemaArtifact,
@@ -250,6 +252,10 @@ class PipelineService:
             published_graph_artifact=published_graph_artifact,
             latest_evaluation_report_artifact=latest_evaluation_report_artifact,
             latest_adversarial_findings_artifact=latest_adversarial_findings_artifact,
+            artifact_history=[
+                self._build_pipeline_artifact_record(artifact_row)
+                for artifact_row in artifact_rows
+            ],
             build_steps=[
                 PipelineBuildStep.model_validate(step_row)
                 for step_row in build_steps
@@ -344,6 +350,28 @@ class PipelineService:
         if artifact_row is None:
             return None
         return model_type.model_validate(artifact_row["payload"])
+
+    def _build_pipeline_artifact_record(self, artifact_row: dict) -> PipelineArtifactRecord:
+        artifact_type = ArtifactType(artifact_row["artifact_type"])
+        return PipelineArtifactRecord(
+            artifact_id=artifact_row["id"],
+            artifact_type=artifact_type,
+            version=int(artifact_row["version"]),
+            producer_agent=artifact_row.get("producer_agent", ""),
+            summary=artifact_row.get("summary", ""),
+            created_at=artifact_row["created_at"],
+            payload=self._parse_artifact_payload(artifact_type, artifact_row["payload"]),
+        )
+
+    def _parse_artifact_payload(self, artifact_type: ArtifactType, payload: dict):
+        model_by_type = {
+            ArtifactType.intent_schema: IntentSchemaArtifact,
+            ArtifactType.eval_dataset: EvalDatasetArtifact,
+            ArtifactType.pipeline_graph: PipelineGraphArtifact,
+            ArtifactType.evaluation_report: EvaluationReportArtifact,
+            ArtifactType.adversarial_findings: AdversarialFindingsArtifact,
+        }
+        return model_by_type[artifact_type].model_validate(payload)
 
     async def _require_artifact_row(
         self,

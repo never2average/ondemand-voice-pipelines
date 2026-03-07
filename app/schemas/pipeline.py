@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from app.schemas.artifacts import (
     AdversarialFindingsArtifact,
     ArtifactRef,
+    ArtifactType,
     EvalDatasetArtifact,
     EvaluationReportArtifact,
     IntentSchemaArtifact,
@@ -82,6 +83,22 @@ class PipelineListResponse(BaseModel):
     pipelines: list[PipelineSummaryResponse]
 
 
+class PipelineArtifactRecord(BaseModel):
+    artifact_id: str
+    artifact_type: ArtifactType
+    version: int
+    producer_agent: str
+    summary: str
+    created_at: datetime
+    payload: (
+        IntentSchemaArtifact
+        | EvalDatasetArtifact
+        | PipelineGraphArtifact
+        | EvaluationReportArtifact
+        | AdversarialFindingsArtifact
+    )
+
+
 class PipelineDetailResponse(BaseModel):
     pipeline: PipelineSpec
     intent_schema_artifact: IntentSchemaArtifact | None = None
@@ -89,6 +106,7 @@ class PipelineDetailResponse(BaseModel):
     published_graph_artifact: PipelineGraphArtifact | None = None
     latest_evaluation_report_artifact: EvaluationReportArtifact | None = None
     latest_adversarial_findings_artifact: AdversarialFindingsArtifact | None = None
+    artifact_history: list[PipelineArtifactRecord] = Field(default_factory=list)
     build_steps: list[PipelineBuildStep] = Field(default_factory=list)
     compatibility_snapshot: PipelineCompatibilitySnapshot = Field(
         default_factory=PipelineCompatibilitySnapshot

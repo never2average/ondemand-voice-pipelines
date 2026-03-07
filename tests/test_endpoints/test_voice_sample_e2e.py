@@ -81,6 +81,21 @@ def test_voice_sample_flows_across_create_list_detail_and_invoke(voice_sample_cl
     assert detail_payload["pipeline"]["status"] == "ready"
     assert detail_payload["published_graph_artifact"]["asr_component"]["provider"] == "sample"
     assert detail_payload["published_graph_artifact"]["asr_component"]["model"] == "fixture-transcript-v1"
+    assert [artifact["producer_agent"] for artifact in detail_payload["artifact_history"]] == [
+        "intent_schema_agent",
+        "eval_dataset_curator_agent",
+        "baseline_graph_planner_agent",
+        "pipeline_evaluator_agent",
+        "pipeline_evaluator_agent",
+    ]
+    assert [artifact["artifact_type"] for artifact in detail_payload["artifact_history"]] == [
+        "intent_schema",
+        "eval_dataset",
+        "pipeline_graph",
+        "evaluation_report",
+        "evaluation_report",
+    ]
+    assert detail_payload["artifact_history"][0]["payload"]["intents"][0]["intent_name"] == "check_balance"
 
     invoke_response = client.post(
         f"/api/v1/pipelines/{pipeline_id}/invoke",

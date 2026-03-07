@@ -126,6 +126,7 @@ class TestGetPipeline:
         response = client.get("/api/v1/pipelines/pipe-1")
         assert response.status_code == 200
         assert response.json()["pipeline"]["status"] == "ready"
+        assert response.json()["artifact_history"] == []
         assert len(response.json()["build_steps"]) == 1
 
     def test_returns_404_for_missing_pipeline(self, client, mock_service):

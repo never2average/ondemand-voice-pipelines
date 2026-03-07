@@ -68,6 +68,16 @@ def main() -> int:
         "created_pipeline_id": pipeline_id,
         "list_count": len(listed.json()["pipelines"]),
         "detail_status": detail["pipeline"]["status"],
+        "artifact_history_count": len(detail["artifact_history"]),
+        "artifact_history": [
+            {
+                "artifact_type": artifact["artifact_type"],
+                "producer_agent": artifact["producer_agent"],
+                "version": artifact["version"],
+                "summary": artifact["summary"],
+            }
+            for artifact in detail["artifact_history"]
+        ],
         "invoke_detected_intent": invoked.json()["detected_intent"],
         "invoke_transcript": invoked.json()["input_text"],
         "pipeline_graph_version": invoked.json()["pipeline_graph_version"],
