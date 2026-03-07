@@ -121,3 +121,66 @@ def test_voice_sample_flows_across_create_list_detail_and_invoke(voice_sample_cl
     assert persisted_invocation["pipeline_id"] == pipeline_id
     assert persisted_invocation["input_type"] == "audio"
     assert persisted_invocation["input_text"] == "check my balance"
+
+
+def test_natural_language_prompt_flows_across_create_and_invoke(voice_sample_client):
+    client, _ = voice_sample_client
+    sample_path = (
+        Path(__file__).resolve().parents[2]
+        / "examples"
+        / "voice_samples"
+        / "check-my-balance.wav"
+    )
+    audio_payload = base64.b64encode(sample_path.read_bytes()).decode("utf-8")
+
+    create_response = client.post(
+        "/api/v1/pipelines",
+        json={
+            "name": "banking-voice-sample-natural-prompt",
+            "description": "Exercise the natural-language prompt flow.",
+            "intent_prompt": "\n".join(
+                [
+                    "I'm setting up a phone support line for a retail bank.",
+                    "Customers usually say things like:",
+                    '- "I want to check my balance"',
+                    '- "I need to transfer money between accounts"',
+                    '- "I need to dispute a charge on my card"',
+                    '- "I need a replacement card because mine is lost"',
+                    "If it's something else, send it to unknown.",
+                ]
+            ),
+            "asr_provider": "sample",
+        },
+    )
+    assert create_response.status_code == 202
+    pipeline_id = create_response.json()["pipeline"]["pipeline_id"]
+
+    detail_payload = None
+    for _ in range(20):
+        detail_response = client.get(f"/api/v1/pipelines/{pipeline_id}")
+        assert detail_response.status_code == 200
+        detail_payload = detail_response.json()
+        if detail_payload["pipeline"]["status"] == "ready":
+            break
+        time.sleep(0.01)
+
+    assert detail_payload is not None
+    assert detail_payload["pipeline"]["status"] == "ready"
+    assert [intent["intent_name"] for intent in detail_payload["intent_schema_artifact"]["intents"]] == [
+        "check_balance",
+        "transfer_money_between_accounts",
+        "dispute_charge_card",
+        "replacement_card_lost",
+    ]
+
+    invoke_response = client.post(
+        f"/api/v1/pipelines/{pipeline_id}/invoke",
+        json={
+            "input_type": "audio",
+            "input_audio_base64": audio_payload,
+        },
+    )
+    assert invoke_response.status_code == 200
+    invoke_payload = invoke_response.json()
+    assert invoke_payload["detected_intent"] == "check_balance"
+    assert invoke_payload["input_text"] == "check my balance"
