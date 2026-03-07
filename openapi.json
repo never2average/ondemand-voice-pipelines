@@ -1,0 +1,1679 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Voice Pipeline API",
+    "description": "Voice pipelines optimized for intent error rate (IER)",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/pipelines": {
+      "get": {
+        "tags": [
+          "pipelines"
+        ],
+        "summary": "List Pipelines",
+        "operationId": "list_pipelines_api_v1_pipelines_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "pipelines"
+        ],
+        "summary": "Create Pipeline",
+        "operationId": "create_pipeline_api_v1_pipelines_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}": {
+      "get": {
+        "tags": [
+          "pipelines"
+        ],
+        "summary": "Get Pipeline",
+        "operationId": "get_pipeline_api_v1_pipelines__pipeline_id__get",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}/invoke": {
+      "post": {
+        "tags": [
+          "pipelines"
+        ],
+        "summary": "Invoke Pipeline",
+        "operationId": "invoke_pipeline_api_v1_pipelines__pipeline_id__invoke_post",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Pipeline Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvokeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvokeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AdversarialFindingsArtifact": {
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "title": "Artifact Id"
+          },
+          "pipeline_id": {
+            "type": "string",
+            "title": "Pipeline Id"
+          },
+          "evaluation_report": {
+            "$ref": "#/components/schemas/ArtifactRef"
+          },
+          "failure_clusters": {
+            "items": {
+              "$ref": "#/components/schemas/FailureCluster"
+            },
+            "type": "array",
+            "title": "Failure Clusters"
+          },
+          "proposed_examples": {
+            "items": {
+              "$ref": "#/components/schemas/EvalExample"
+            },
+            "type": "array",
+            "title": "Proposed Examples"
+          },
+          "recommended_component_changes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Recommended Component Changes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "artifact_id",
+          "pipeline_id",
+          "evaluation_report"
+        ],
+        "title": "AdversarialFindingsArtifact"
+      },
+      "ArtifactRef": {
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "title": "Artifact Id"
+          },
+          "artifact_type": {
+            "$ref": "#/components/schemas/ArtifactType"
+          },
+          "pipeline_id": {
+            "type": "string",
+            "title": "Pipeline Id"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "artifact_id",
+          "artifact_type",
+          "pipeline_id",
+          "version"
+        ],
+        "title": "ArtifactRef"
+      },
+      "ArtifactType": {
+        "type": "string",
+        "enum": [
+          "intent_schema",
+          "eval_dataset",
+          "pipeline_graph",
+          "evaluation_report",
+          "adversarial_findings"
+        ],
+        "title": "ArtifactType"
+      },
+      "AsrComponentSpec": {
+        "properties": {
+          "component_id": {
+            "type": "string",
+            "title": "Component Id"
+          },
+          "component_name": {
+            "type": "string",
+            "title": "Component Name"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "default": "en"
+          },
+          "keyword_hints": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Keyword Hints"
+          },
+          "n_best": {
+            "type": "integer",
+            "title": "N Best",
+            "default": 1
+          },
+          "endpointing_config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Endpointing Config"
+          }
+        },
+        "type": "object",
+        "required": [
+          "component_id",
+          "component_name",
+          "provider",
+          "model"
+        ],
+        "title": "AsrComponentSpec"
+      },
+      "CandidateRerankerComponentSpec": {
+        "properties": {
+          "component_id": {
+            "type": "string",
+            "title": "Component Id"
+          },
+          "component_name": {
+            "type": "string",
+            "title": "Component Name"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "rerank_prompt": {
+            "type": "string",
+            "title": "Rerank Prompt"
+          },
+          "top_k": {
+            "type": "integer",
+            "title": "Top K",
+            "default": 3
+          }
+        },
+        "type": "object",
+        "required": [
+          "component_id",
+          "component_name",
+          "provider",
+          "model",
+          "rerank_prompt"
+        ],
+        "title": "CandidateRerankerComponentSpec"
+      },
+      "ComponentTrace": {
+        "properties": {
+          "component_id": {
+            "type": "string",
+            "title": "Component Id"
+          },
+          "component_kind": {
+            "type": "string",
+            "title": "Component Kind"
+          },
+          "input_snapshot": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Input Snapshot"
+          },
+          "output_snapshot": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Output Snapshot"
+          },
+          "latency_ms": {
+            "type": "integer",
+            "title": "Latency Ms"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "component_id",
+          "component_kind",
+          "latency_ms"
+        ],
+        "title": "ComponentTrace"
+      },
+      "DecisionPolicyComponentSpec": {
+        "properties": {
+          "component_id": {
+            "type": "string",
+            "title": "Component Id"
+          },
+          "component_name": {
+            "type": "string",
+            "title": "Component Name"
+          },
+          "confidence_threshold": {
+            "type": "number",
+            "title": "Confidence Threshold",
+            "default": 0.7
+          },
+          "margin_threshold": {
+            "type": "number",
+            "title": "Margin Threshold",
+            "default": 0.05
+          },
+          "fallback_intent": {
+            "type": "string",
+            "title": "Fallback Intent",
+            "default": "unknown"
+          },
+          "allow_abstain": {
+            "type": "boolean",
+            "title": "Allow Abstain",
+            "default": true
+          },
+          "out_of_domain_strategy": {
+            "type": "string",
+            "title": "Out Of Domain Strategy",
+            "default": "fallback_intent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "component_id",
+          "component_name"
+        ],
+        "title": "DecisionPolicyComponentSpec"
+      },
+      "EvalCaseResult": {
+        "properties": {
+          "example_id": {
+            "type": "string",
+            "title": "Example Id"
+          },
+          "split": {
+            "type": "string",
+            "enum": [
+              "train",
+              "dev",
+              "holdout"
+            ],
+            "title": "Split"
+          },
+          "expected_intent": {
+            "type": "string",
+            "title": "Expected Intent"
+          },
+          "predicted_intent": {
+            "type": "string",
+            "title": "Predicted Intent"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "correct": {
+            "type": "boolean",
+            "title": "Correct"
+          },
+          "transcript_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcript Text"
+          },
+          "normalized_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Normalized Text"
+          },
+          "component_traces": {
+            "items": {
+              "$ref": "#/components/schemas/ComponentTrace"
+            },
+            "type": "array",
+            "title": "Component Traces"
+          }
+        },
+        "type": "object",
+        "required": [
+          "example_id",
+          "split",
+          "expected_intent",
+          "predicted_intent",
+          "confidence",
+          "correct"
+        ],
+        "title": "EvalCaseResult"
+      },
+      "EvalDatasetArtifact": {
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "title": "Artifact Id"
+          },
+          "pipeline_id": {
+            "type": "string",
+            "title": "Pipeline Id"
+          },
+          "intent_schema": {
+            "$ref": "#/components/schemas/ArtifactRef"
+          },
+          "examples": {
+            "items": {
+              "$ref": "#/components/schemas/EvalExample"
+            },
+            "type": "array",
+            "title": "Examples"
+          },
+          "coverage_summary": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Coverage Summary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "artifact_id",
+          "pipeline_id",
+          "intent_schema"
+        ],
+        "title": "EvalDatasetArtifact"
+      },
+      "EvalExample": {
+        "properties": {
+          "example_id": {
+            "type": "string",
+            "title": "Example Id"
+          },
+          "split": {
+            "type": "string",
+            "enum": [
+              "train",
+              "dev",
+              "holdout"
+            ],
+            "title": "Split"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "seed",
+              "curated",
+              "adversarial",
+              "production"
+            ],
+            "title": "Source"
+          },
+          "modality": {
+            "type": "string",
+            "enum": [
+              "text",
+              "audio"
+            ],
+            "title": "Modality"
+          },
+          "utterance_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Utterance Text"
+          },
+          "audio_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio Uri"
+          },
+          "expected_intent": {
+            "type": "string",
+            "title": "Expected Intent"
+          },
+          "phenomenon_tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Phenomenon Tags"
+          },
+          "confusable_with": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Confusable With"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metadata"
+          }
+        },
+        "type": "object",
+        "required": [
+          "example_id",
+          "split",
+          "source",
+          "modality",
+          "expected_intent"
+        ],
+        "title": "EvalExample"
+      },
+      "EvaluationReportArtifact": {
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "title": "Artifact Id"
+          },
+          "pipeline_id": {
+            "type": "string",
+            "title": "Pipeline Id"
+          },
+          "pipeline_graph": {
+            "$ref": "#/components/schemas/ArtifactRef"
+          },
+          "eval_dataset": {
+            "$ref": "#/components/schemas/ArtifactRef"
+          },
+          "overall_intent_error_rate": {
+            "type": "number",
+            "title": "Overall Intent Error Rate"
+          },
+          "split_intent_error_rate": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Split Intent Error Rate"
+          },
+          "per_intent_accuracy": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Per Intent Accuracy"
+          },
+          "confusion_matrix": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            "type": "object",
+            "title": "Confusion Matrix"
+          },
+          "hard_cases": {
+            "items": {
+              "$ref": "#/components/schemas/EvalCaseResult"
+            },
+            "type": "array",
+            "title": "Hard Cases"
+          }
+        },
+        "type": "object",
+        "required": [
+          "artifact_id",
+          "pipeline_id",
+          "pipeline_graph",
+          "eval_dataset",
+          "overall_intent_error_rate"
+        ],
+        "title": "EvaluationReportArtifact"
+      },
+      "FailureCluster": {
+        "properties": {
+          "cluster_id": {
+            "type": "string",
+            "title": "Cluster Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "affected_intents": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Affected Intents"
+          },
+          "suspected_component_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Suspected Component Ids"
+          },
+          "example_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Example Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cluster_id",
+          "title",
+          "description"
+        ],
+        "title": "FailureCluster"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "IntentCandidate": {
+        "properties": {
+          "intent_name": {
+            "type": "string",
+            "title": "Intent Name"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "intent_name",
+          "confidence"
+        ],
+        "title": "IntentCandidate"
+      },
+      "IntentClassifierComponentSpec": {
+        "properties": {
+          "component_id": {
+            "type": "string",
+            "title": "Component Id"
+          },
+          "component_name": {
+            "type": "string",
+            "title": "Component Name"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "system_prompt": {
+            "type": "string",
+            "title": "System Prompt"
+          },
+          "candidate_count": {
+            "type": "integer",
+            "title": "Candidate Count",
+            "default": 3
+          },
+          "intent_schema": {
+            "$ref": "#/components/schemas/ArtifactRef"
+          },
+          "few_shot_examples": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Few Shot Examples"
+          }
+        },
+        "type": "object",
+        "required": [
+          "component_id",
+          "component_name",
+          "provider",
+          "model",
+          "system_prompt",
+          "intent_schema"
+        ],
+        "title": "IntentClassifierComponentSpec"
+      },
+      "IntentDefinition": {
+        "properties": {
+          "intent_name": {
+            "type": "string",
+            "title": "Intent Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "positive_examples": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Positive Examples"
+          },
+          "negative_examples": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Negative Examples"
+          },
+          "disambiguation_rules": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Disambiguation Rules"
+          },
+          "out_of_scope_examples": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Out Of Scope Examples"
+          }
+        },
+        "type": "object",
+        "required": [
+          "intent_name",
+          "description"
+        ],
+        "title": "IntentDefinition"
+      },
+      "IntentSchemaArtifact": {
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "title": "Artifact Id"
+          },
+          "pipeline_id": {
+            "type": "string",
+            "title": "Pipeline Id"
+          },
+          "source_prompt": {
+            "type": "string",
+            "title": "Source Prompt"
+          },
+          "fallback_intent": {
+            "type": "string",
+            "title": "Fallback Intent",
+            "default": "unknown"
+          },
+          "intents": {
+            "items": {
+              "$ref": "#/components/schemas/IntentDefinition"
+            },
+            "type": "array",
+            "title": "Intents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "artifact_id",
+          "pipeline_id",
+          "source_prompt"
+        ],
+        "title": "IntentSchemaArtifact"
+      },
+      "InvokeRequest": {
+        "properties": {
+          "input_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Text"
+          },
+          "input_audio_base64": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Audio Base64"
+          },
+          "input_type": {
+            "type": "string",
+            "pattern": "^(text|audio)$",
+            "title": "Input Type",
+            "default": "text"
+          }
+        },
+        "type": "object",
+        "title": "InvokeRequest"
+      },
+      "InvokeResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "pipeline_id": {
+            "type": "string",
+            "title": "Pipeline Id"
+          },
+          "input_type": {
+            "type": "string",
+            "title": "Input Type"
+          },
+          "input_text": {
+            "type": "string",
+            "title": "Input Text"
+          },
+          "normalized_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Normalized Text"
+          },
+          "detected_intent": {
+            "type": "string",
+            "title": "Detected Intent"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "intent_candidates": {
+            "items": {
+              "$ref": "#/components/schemas/IntentCandidate"
+            },
+            "type": "array",
+            "title": "Intent Candidates"
+          },
+          "latency_ms": {
+            "type": "integer",
+            "title": "Latency Ms"
+          },
+          "component_traces": {
+            "items": {
+              "$ref": "#/components/schemas/ComponentTrace"
+            },
+            "type": "array",
+            "title": "Component Traces"
+          },
+          "pipeline_graph_artifact": {
+            "$ref": "#/components/schemas/ArtifactRef"
+          },
+          "pipeline_graph_version": {
+            "type": "integer",
+            "title": "Pipeline Graph Version"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metadata"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "pipeline_id",
+          "input_type",
+          "input_text",
+          "detected_intent",
+          "confidence",
+          "intent_candidates",
+          "latency_ms",
+          "pipeline_graph_artifact",
+          "pipeline_graph_version",
+          "created_at"
+        ],
+        "title": "InvokeResponse"
+      },
+      "OptimizationObjective": {
+        "properties": {
+          "primary_metric": {
+            "type": "string",
+            "const": "intent_error_rate",
+            "title": "Primary Metric",
+            "default": "intent_error_rate"
+          },
+          "target_intent_error_rate": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Target Intent Error Rate",
+            "default": 0.05
+          },
+          "max_latency_ms": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Latency Ms"
+          },
+          "max_cost_per_invocation_usd": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Cost Per Invocation Usd"
+          },
+          "max_optimization_rounds": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Max Optimization Rounds",
+            "default": 3
+          }
+        },
+        "type": "object",
+        "title": "OptimizationObjective"
+      },
+      "PipelineBuildStep": {
+        "properties": {
+          "step_name": {
+            "type": "string",
+            "title": "Step Name"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "input_artifacts": {
+            "items": {
+              "$ref": "#/components/schemas/ArtifactRef"
+            },
+            "type": "array",
+            "title": "Input Artifacts"
+          },
+          "output_artifacts": {
+            "items": {
+              "$ref": "#/components/schemas/ArtifactRef"
+            },
+            "type": "array",
+            "title": "Output Artifacts"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "default": ""
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "step_name",
+          "status"
+        ],
+        "title": "PipelineBuildStep"
+      },
+      "PipelineCompatibilitySnapshot": {
+        "properties": {
+          "config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Config"
+          },
+          "metrics": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metrics"
+          }
+        },
+        "type": "object",
+        "title": "PipelineCompatibilitySnapshot"
+      },
+      "PipelineCreateRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "intent_prompt": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Intent Prompt"
+          },
+          "asr_provider": {
+            "type": "string",
+            "title": "Asr Provider",
+            "default": "whisper"
+          },
+          "optimization_objective": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OptimizationObjective"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "intent_prompt"
+        ],
+        "title": "PipelineCreateRequest"
+      },
+      "PipelineDetailResponse": {
+        "properties": {
+          "pipeline": {
+            "$ref": "#/components/schemas/PipelineSpec"
+          },
+          "intent_schema_artifact": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IntentSchemaArtifact"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "eval_dataset_artifact": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalDatasetArtifact"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "published_graph_artifact": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PipelineGraphArtifact"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_evaluation_report_artifact": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvaluationReportArtifact"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_adversarial_findings_artifact": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AdversarialFindingsArtifact"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "build_steps": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineBuildStep"
+            },
+            "type": "array",
+            "title": "Build Steps"
+          },
+          "compatibility_snapshot": {
+            "$ref": "#/components/schemas/PipelineCompatibilitySnapshot"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pipeline"
+        ],
+        "title": "PipelineDetailResponse"
+      },
+      "PipelineEdge": {
+        "properties": {
+          "from_component_id": {
+            "type": "string",
+            "title": "From Component Id"
+          },
+          "from_output_key": {
+            "type": "string",
+            "title": "From Output Key"
+          },
+          "to_component_id": {
+            "type": "string",
+            "title": "To Component Id"
+          },
+          "to_input_key": {
+            "type": "string",
+            "title": "To Input Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "from_component_id",
+          "from_output_key",
+          "to_component_id",
+          "to_input_key"
+        ],
+        "title": "PipelineEdge"
+      },
+      "PipelineGraphArtifact": {
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "title": "Artifact Id"
+          },
+          "pipeline_id": {
+            "type": "string",
+            "title": "Pipeline Id"
+          },
+          "entry_mode": {
+            "type": "string",
+            "enum": [
+              "text",
+              "audio"
+            ],
+            "title": "Entry Mode",
+            "default": "audio"
+          },
+          "asr_component": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AsrComponentSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "normalizer_component": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TranscriptNormalizerComponentSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "intent_classifier_component": {
+            "$ref": "#/components/schemas/IntentClassifierComponentSpec"
+          },
+          "decision_policy_component": {
+            "$ref": "#/components/schemas/DecisionPolicyComponentSpec"
+          },
+          "candidate_reranker_component": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CandidateRerankerComponentSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineEdge"
+            },
+            "type": "array",
+            "title": "Edges"
+          }
+        },
+        "type": "object",
+        "required": [
+          "artifact_id",
+          "pipeline_id",
+          "intent_classifier_component",
+          "decision_policy_component"
+        ],
+        "title": "PipelineGraphArtifact"
+      },
+      "PipelineListResponse": {
+        "properties": {
+          "pipelines": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineSummaryResponse"
+            },
+            "type": "array",
+            "title": "Pipelines"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pipelines"
+        ],
+        "title": "PipelineListResponse"
+      },
+      "PipelineSpec": {
+        "properties": {
+          "pipeline_id": {
+            "type": "string",
+            "title": "Pipeline Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PipelineStatus"
+          },
+          "asr_provider": {
+            "type": "string",
+            "title": "Asr Provider"
+          },
+          "optimization_objective": {
+            "$ref": "#/components/schemas/OptimizationObjective"
+          },
+          "intent_schema": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ArtifactRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "eval_dataset": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ArtifactRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "published_graph": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ArtifactRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_evaluation_report": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ArtifactRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_adversarial_findings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ArtifactRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pipeline_id",
+          "name",
+          "description",
+          "status",
+          "asr_provider",
+          "optimization_objective",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "PipelineSpec"
+      },
+      "PipelineStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "building",
+          "ready",
+          "failed"
+        ],
+        "title": "PipelineStatus"
+      },
+      "PipelineSummaryResponse": {
+        "properties": {
+          "pipeline_id": {
+            "type": "string",
+            "title": "Pipeline Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PipelineStatus"
+          },
+          "asr_provider": {
+            "type": "string",
+            "title": "Asr Provider"
+          },
+          "current_intent_error_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Intent Error Rate"
+          },
+          "holdout_intent_error_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holdout Intent Error Rate"
+          },
+          "published_graph_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published Graph Version"
+          },
+          "active_build_step": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Build Step"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pipeline_id",
+          "name",
+          "description",
+          "status",
+          "asr_provider",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "PipelineSummaryResponse"
+      },
+      "TranscriptNormalizerComponentSpec": {
+        "properties": {
+          "component_id": {
+            "type": "string",
+            "title": "Component Id"
+          },
+          "component_name": {
+            "type": "string",
+            "title": "Component Name"
+          },
+          "lowercase": {
+            "type": "boolean",
+            "title": "Lowercase",
+            "default": true
+          },
+          "strip_fillers": {
+            "type": "boolean",
+            "title": "Strip Fillers",
+            "default": true
+          },
+          "punctuation_policy": {
+            "type": "string",
+            "title": "Punctuation Policy",
+            "default": "preserve"
+          },
+          "canonical_replacements": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Canonical Replacements"
+          },
+          "custom_rules": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Custom Rules"
+          }
+        },
+        "type": "object",
+        "required": [
+          "component_id",
+          "component_name"
+        ],
+        "title": "TranscriptNormalizerComponentSpec"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
