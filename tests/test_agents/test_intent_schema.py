@@ -42,7 +42,7 @@ async def test_intent_schema_agent_parses_nontechnical_prompt_into_clean_intents
                     "If it's something else, send it to unknown.",
                 ]
             ),
-            asr_provider="sample",
+            asr_provider="whisper",
             optimization_objective=OptimizationObjective(),
         )
     )

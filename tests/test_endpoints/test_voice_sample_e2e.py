@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import base64
 import time
-from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -17,6 +17,7 @@ from app.db.repositories.in_memory import (
 )
 from app.dependencies import get_pipeline_service
 from app.main import app
+from app.providers.asr.base import TranscriptionResult
 from app.services.pipeline_service import PipelineService
 
 
@@ -36,28 +37,27 @@ def voice_sample_client():
     app.dependency_overrides.clear()
 
 
+class FakeAsrProvider:
+    async def transcribe(self, audio_bytes, hints=None):
+        return TranscriptionResult(text="check my balance", confidence=0.99)
+
+
 def test_voice_sample_flows_across_create_list_detail_and_invoke(voice_sample_client):
     client, service = voice_sample_client
-    sample_path = (
-        Path(__file__).resolve().parents[2]
-        / "examples"
-        / "voice_samples"
-        / "check-my-balance.wav"
-    )
-    audio_payload = base64.b64encode(sample_path.read_bytes()).decode("utf-8")
+    audio_payload = base64.b64encode(b"fake-audio").decode("utf-8")
 
     create_response = client.post(
         "/api/v1/pipelines",
         json={
-            "name": "banking-voice-sample",
-            "description": "Exercise the local sample voice workflow.",
+            "name": "banking-audio-invoke",
+            "description": "Exercise the audio invoke workflow with a test ASR stub.",
             "intent_prompt": "\n".join(
                 [
                     "check balance: Handle requests about checking an account balance.",
                     "transfer funds: Handle requests about moving money between accounts.",
                 ]
             ),
-            "asr_provider": "sample",
+            "asr_provider": "whisper",
         },
     )
     assert create_response.status_code == 202
@@ -66,7 +66,7 @@ def test_voice_sample_flows_across_create_list_detail_and_invoke(voice_sample_cl
     list_response = client.get("/api/v1/pipelines")
     assert list_response.status_code == 200
     assert list_response.json()["pipelines"][0]["pipeline_id"] == pipeline_id
-    assert list_response.json()["pipelines"][0]["asr_provider"] == "sample"
+    assert list_response.json()["pipelines"][0]["asr_provider"] == "whisper"
 
     detail_payload = None
     for _ in range(20):
@@ -79,8 +79,8 @@ def test_voice_sample_flows_across_create_list_detail_and_invoke(voice_sample_cl
 
     assert detail_payload is not None
     assert detail_payload["pipeline"]["status"] == "ready"
-    assert detail_payload["published_graph_artifact"]["asr_component"]["provider"] == "sample"
-    assert detail_payload["published_graph_artifact"]["asr_component"]["model"] == "fixture-transcript-v1"
+    assert detail_payload["published_graph_artifact"]["asr_component"]["provider"] == "whisper"
+    assert detail_payload["published_graph_artifact"]["asr_component"]["model"] == "whisper-1"
     assert [artifact["build_phase"] for artifact in detail_payload["artifact_history"]] == [
         "intent_schema_design",
         "evaluation_dataset",
@@ -97,13 +97,14 @@ def test_voice_sample_flows_across_create_list_detail_and_invoke(voice_sample_cl
     ]
     assert detail_payload["artifact_history"][0]["payload"]["intents"][0]["intent_name"] == "check_balance"
 
-    invoke_response = client.post(
-        f"/api/v1/pipelines/{pipeline_id}/invoke",
-        json={
-            "input_type": "audio",
-            "input_audio_base64": audio_payload,
-        },
-    )
+    with patch("app.services.graph_runner.get_asr_provider", return_value=FakeAsrProvider()):
+        invoke_response = client.post(
+            f"/api/v1/pipelines/{pipeline_id}/invoke",
+            json={
+                "input_type": "audio",
+                "input_audio_base64": audio_payload,
+            },
+        )
     assert invoke_response.status_code == 200
     invoke_payload = invoke_response.json()
     assert invoke_payload["input_text"] == "check my balance"
@@ -125,18 +126,12 @@ def test_voice_sample_flows_across_create_list_detail_and_invoke(voice_sample_cl
 
 def test_natural_language_prompt_flows_across_create_and_invoke(voice_sample_client):
     client, _ = voice_sample_client
-    sample_path = (
-        Path(__file__).resolve().parents[2]
-        / "examples"
-        / "voice_samples"
-        / "check-my-balance.wav"
-    )
-    audio_payload = base64.b64encode(sample_path.read_bytes()).decode("utf-8")
+    audio_payload = base64.b64encode(b"fake-audio").decode("utf-8")
 
     create_response = client.post(
         "/api/v1/pipelines",
         json={
-            "name": "banking-voice-sample-natural-prompt",
+            "name": "banking-natural-prompt",
             "description": "Exercise the natural-language prompt flow.",
             "intent_prompt": "\n".join(
                 [
@@ -149,7 +144,7 @@ def test_natural_language_prompt_flows_across_create_and_invoke(voice_sample_cli
                     "If it's something else, send it to unknown.",
                 ]
             ),
-            "asr_provider": "sample",
+            "asr_provider": "whisper",
         },
     )
     assert create_response.status_code == 202
@@ -173,13 +168,14 @@ def test_natural_language_prompt_flows_across_create_and_invoke(voice_sample_cli
         "replacement_card_lost",
     ]
 
-    invoke_response = client.post(
-        f"/api/v1/pipelines/{pipeline_id}/invoke",
-        json={
-            "input_type": "audio",
-            "input_audio_base64": audio_payload,
-        },
-    )
+    with patch("app.services.graph_runner.get_asr_provider", return_value=FakeAsrProvider()):
+        invoke_response = client.post(
+            f"/api/v1/pipelines/{pipeline_id}/invoke",
+            json={
+                "input_type": "audio",
+                "input_audio_base64": audio_payload,
+            },
+        )
     assert invoke_response.status_code == 200
     invoke_payload = invoke_response.json()
     assert invoke_payload["detected_intent"] == "check_balance"

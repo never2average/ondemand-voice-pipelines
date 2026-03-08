@@ -131,6 +131,4 @@ class BaselineGraphPlannerAgent(BaseArtifactAgent[PipelineGraphArtifact]):
     def _resolve_asr_model(self, asr_provider: str) -> str:
         if asr_provider == "whisper":
             return "whisper-1"
-        if asr_provider == "sample":
-            return "fixture-transcript-v1"
         return "nova-2"

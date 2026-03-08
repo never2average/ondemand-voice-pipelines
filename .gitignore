@@ -13,7 +13,6 @@ dist/
 build/
 .DS_Store
 artifacts/
-docs/demo/*.json
-docs/demo/*.log
-docs/demo/*.png
-docs/demo/*.txt
+docs/demo/
+examples/
+scripts/
