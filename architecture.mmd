@@ -1,0 +1,97 @@
+flowchart TD                                                                                                                                    
+      %% Entry point                                                                                                                              
+      API["POST /api/v1/pipelines<br/><i>User submits intent prompt</i>"]                                                                         
+      API -->|"201 + status=pending"| RETURN["Return immediately"]                                                                                
+      API -->|"BackgroundTask"| ORCH                        
+
+      %% Orchestrator
+      ORCH["PipelineOrchestrator<br/><b>build_pipeline()</b>"]
+      ORCH -->|"status → building"| DB_UPDATE["Update pipeline status"]
+      DB_UPDATE --> CURATOR
+
+      %% ── Agent 1: Eval Curator ──
+      subgraph CURATOR_BOX["Eval Curator Agent"]
+          direction TB
+          CURATOR["Claude Opus 4.6<br/><i>Adaptive Thinking</i>"]
+          CURATOR -->|"tool_use loop"| CT1["store_evals"]
+          CURATOR -->|"tool_use loop"| CT2["classify_utterance"]
+          CT1 -->|"result"| CURATOR
+          CT2 -->|"result"| CURATOR
+      end
+      CURATOR_BOX -->|"20+ eval cases"| PERSIST_EVALS["Persist evals → Supabase"]
+      PERSIST_EVALS --> ETL
+
+      %% ── Agent 2: ETL Pipeline ──
+      subgraph ETL_BOX["ETL Pipeline Agent"]
+          direction TB
+          ETL["Claude Opus 4.6<br/><i>Adaptive Thinking</i>"]
+          ETL -->|"tool_use loop"| ET1["run_eval_suite"]
+          ETL -->|"tool_use loop"| ET2["analyze_failures"]
+          ETL -->|"tool_use loop"| ET3["update_prompt_config"]
+          ETL -->|"tool_use loop"| ET4["classify_utterance"]
+          ET1 -->|"IER + results"| ETL
+          ET2 -->|"failure patterns"| ETL
+          ET3 -->|"config updated"| ETL
+          ET4 -->|"spot check"| ETL
+      end
+      ETL_BOX -->|"optimized config + baseline IER"| CHECK
+
+      %% ── Improvement Loop ──
+      CHECK{"IER ≤ 5%?"}
+      CHECK -->|"Yes"| DONE
+      CHECK -->|"No (up to 3x)"| ADV
+
+      %% ── Agent 3: Adversarial ──
+      subgraph ADV_BOX["Adversarial Agent"]
+          direction TB
+          ADV["Claude Opus 4.6<br/><i>Adaptive Thinking</i>"]
+          ADV -->|"tool_use loop"| AT1["analyze_failures"]
+          ADV -->|"tool_use loop"| AT2["store_evals"]
+          ADV -->|"tool_use loop"| AT3["classify_utterance"]
+          AT1 -->|"weakness patterns"| ADV
+          AT2 -->|"edge cases stored"| ADV
+          AT3 -->|"spot check"| ADV
+      end
+      ADV_BOX -->|"adversarial evals"| PERSIST_ADV["Persist → Supabase"]
+      PERSIST_ADV --> RE_ETL["ETL Pipeline Agent<br/><i>(re-optimize)</i>"]
+      RE_ETL --> CHECK
+
+      %% ── Done ──
+      DONE["status → ready<br/>Store final config + metrics"]
+
+      %% ── Invocation Flow ──
+      subgraph INVOKE_BOX["POST /pipelines/{id}/invoke"]
+          direction LR
+          INV_IN["Text or Audio input"]
+          INV_IN -->|"if audio"| WHISPER["OpenAI Whisper<br/><i>ASR transcription</i>"]
+          WHISPER --> CLASSIFY
+          INV_IN -->|"if text"| CLASSIFY["Claude Sonnet 4.6<br/><i>Intent Classification</i><br/>uses optimized config"]
+          CLASSIFY --> INV_OUT["detected_intent<br/>confidence<br/>candidates"]
+      end
+
+      %% ── Tool internals ──
+      subgraph TOOLS["Shared Tool Layer"]
+          direction LR
+          T_STORE["store_evals<br/><i>append to context</i>"]
+          T_RUN["run_eval_suite<br/><i>classify all evals,<br/>compute IER</i>"]
+          T_ANALYZE["analyze_failures<br/><i>return misclassified<br/>utterances</i>"]
+          T_UPDATE["update_prompt_config<br/><i>rewrite system prompt<br/>+ thresholds</i>"]
+          T_CLASSIFY["classify_utterance<br/><i>spot-check one<br/>utterance</i>"]
+      end
+
+      %% run_eval_suite and classify_utterance call the intent extractor
+      T_RUN -.->|"calls"| INTENT_EXT["ClaudeIntentExtractor<br/><i>Sonnet 4.6</i>"]
+      T_CLASSIFY -.->|"calls"| INTENT_EXT
+
+      %% Styling
+      style API fill:#4A90D9,color:#fff
+      style ORCH fill:#2C3E50,color:#fff
+      style CHECK fill:#E67E22,color:#fff
+      style DONE fill:#27AE60,color:#fff
+      style CURATOR fill:#8E44AD,color:#fff
+      style ETL fill:#8E44AD,color:#fff
+      style ADV fill:#C0392B,color:#fff
+      style RE_ETL fill:#8E44AD,color:#fff
+      style INTENT_EXT fill:#3498DB,color:#fff
+      style WHISPER fill:#3498DB,color:#fff
+
